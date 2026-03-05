@@ -1,0 +1,1472 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>สกอร์บอร์ดบาสเกตบอล (FIBA) - แบบมือโปร</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --text:#e8eeff;
+      --muted:#a8b4dc;
+      --accent:#6ee7ff;
+      --accent2:#7cffa0;
+      --danger:#ff4d6d;
+      --warn:#ffd166;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --radius:18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans Thai", "Noto Sans", sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 700px at 20% 0%, #16235b 0%, var(--bg) 60%),
+                  radial-gradient(900px 600px at 90% 10%, #1b6d7a 0%, rgba(11,16,32,.2) 60%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+    header{
+      padding:18px 20px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+    }
+    .dot{
+      width:12px;height:12px;border-radius:50%;
+      background:linear-gradient(135deg,var(--accent),#5b7cff);
+      box-shadow:0 0 0 6px rgba(110,231,255,.12);
+    }
+    .brand h1{margin:0;font-size:16px;letter-spacing:.4px}
+    .brand p{margin:0;color:var(--muted);font-size:12px}
+
+    .meta{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:999px;
+      background:rgba(0,0,0,.18);
+      backdrop-filter: blur(6px);
+    }
+    .pill strong{color:var(--text); font-weight:800}
+    .statusDot{
+      width:8px;height:8px;border-radius:50%;
+      background:#7cffa0;
+      box-shadow:0 0 0 4px rgba(124,255,160,.14);
+    }
+    .statusDot.paused{background:var(--warn); box-shadow:0 0 0 4px rgba(255,209,102,.14)}
+    .statusDot.stopped{background:var(--danger); box-shadow:0 0 0 4px rgba(255,77,109,.14)}
+    .blink{animation: blink 1s steps(2,end) infinite}
+    @keyframes blink{ 50%{opacity:.35} }
+
+    .wrap{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      padding:10px 14px 16px;
+      flex:1;
+    }
+    .board{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 14px;
+      background:linear-gradient(90deg, rgba(110,231,255,.12), rgba(124,255,160,.06));
+      border-bottom:1px solid rgba(255,255,255,.08);
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 0.95fr 1fr;
+      gap:0;
+      padding:14px;
+    }
+
+    .team{
+      background:rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height:240px;
+    }
+    .team.home{border-color: rgba(110,231,255,.25)}
+    .team.away{border-color: rgba(124,255,160,.22)}
+
+    .teamHead{display:flex; align-items:center; justify-content:space-between; gap:10px}
+    .nameWrap{display:flex; flex-direction:column; gap:6px; min-width:0; flex:1}
+    .nameRow{display:flex; gap:8px; align-items:center}
+    .badge{width:10px;height:10px;border-radius:50%; background:var(--accent)}
+    .away .badge{background:var(--accent2)}
+    .team input{
+      width:100%;
+      background:transparent;
+      border:1px solid rgba(255,255,255,.10);
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 10px;
+      outline:none;
+      font-weight:900;
+      letter-spacing:.3px;
+    }
+    .team input:focus{border-color: rgba(110,231,255,.65); box-shadow:0 0 0 4px rgba(110,231,255,.12)}
+    .away input:focus{border-color: rgba(124,255,160,.65); box-shadow:0 0 0 4px rgba(124,255,160,.12)}
+
+    .score{
+      font-family:var(--mono);
+      font-size:72px;
+      font-weight:1000;
+      letter-spacing:2px;
+      line-height:1;
+      text-align:center;
+      padding:10px 0;
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.18));
+      border:1px solid rgba(255,255,255,.10);
+    }
+
+    .miniGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .stat{
+      background:rgba(0,0,0,.14);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:14px;
+      padding:10px;
+    }
+    .stat .label{color:var(--muted); font-size:12px}
+    .stat .val{
+      font-family:var(--mono);
+      font-size:28px;
+      font-weight:1000;
+      margin-top:4px;
+    }
+
+    .center{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      padding:0 12px;
+    }
+    .clockCard{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.18));
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height:240px;
+    }
+    .bigClock{
+      font-family:var(--mono);
+      font-size:64px;
+      font-weight:1000;
+      letter-spacing:2px;
+      text-align:center;
+      padding:8px 0;
+      border-radius:14px;
+      background:rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .shotClock{
+      font-family:var(--mono);
+      font-size:48px;
+      font-weight:1000;
+      text-align:center;
+      padding:8px 0;
+      border-radius:14px;
+      background:rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .shotClock.warn{border-color: rgba(255,209,102,.65); box-shadow:0 0 0 4px rgba(255,209,102,.10)}
+    .shotClock.danger{border-color: rgba(255,77,109,.75); box-shadow:0 0 0 4px rgba(255,77,109,.12)}
+
+    .centerMini{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .centerBox{
+      background:rgba(0,0,0,.14);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:14px;
+      padding:10px;
+    }
+    .centerBox .label{color:var(--muted); font-size:12px}
+    .centerBox .val{
+      font-family:var(--mono);
+      font-size:22px;
+      font-weight:1000;
+      margin-top:6px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .possession{
+      display:flex; gap:8px; align-items:center; justify-content:center;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.18);
+      user-select:none;
+      cursor:pointer;
+    }
+    .arrow{
+      width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;
+      border-left:14px solid var(--accent);
+    }
+    .arrow.away{ border-left-color: var(--accent2); }
+    .possession span{font-size:12px;color:var(--muted)}
+    .possession strong{font-size:12px}
+
+    .controls{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.18));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-width: 290px;
+    }
+    .row{display:flex; gap:8px; flex-wrap:wrap}
+    button{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.22);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      font-weight:900;
+      letter-spacing:.2px;
+      transition: transform .05s ease, border-color .15s ease, background .15s ease;
+      user-select:none;
+    }
+    button:hover{border-color: rgba(110,231,255,.55)}
+    button:active{transform: translateY(1px)}
+    button.primary{
+      background: linear-gradient(135deg, rgba(110,231,255,.22), rgba(91,124,255,.14));
+      border-color: rgba(110,231,255,.35);
+    }
+    button.good{
+      background: linear-gradient(135deg, rgba(124,255,160,.18), rgba(110,231,255,.08));
+      border-color: rgba(124,255,160,.35);
+    }
+    button.danger{
+      background: linear-gradient(135deg, rgba(255,77,109,.18), rgba(0,0,0,.20));
+      border-color: rgba(255,77,109,.35);
+    }
+    button.small{padding:8px 10px; border-radius:12px; font-weight:900}
+    button.wide{flex:1}
+
+    .sectionTitle{display:flex; align-items:center; justify-content:space-between; margin-top:2px}
+    .sectionTitle h3{margin:0;font-size:13px;letter-spacing:.3px}
+    .hint{color:var(--muted); font-size:11px}
+    .kbd{
+      font-family:var(--mono);
+      font-size:11px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.22);
+      padding:2px 6px;
+      border-radius:8px;
+      color:var(--muted);
+    }
+    .log{
+      margin-top:6px;
+      background:rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:14px;
+      padding:10px;
+      max-height:320px;
+      overflow:auto;
+      font-family:var(--mono);
+      font-size:12px;
+    }
+    .log .item{padding:6px 0; border-bottom:1px dashed rgba(255,255,255,.08)}
+    .log .item:last-child{border-bottom:none}
+    .log .t{color:var(--muted)}
+
+    .footer{
+      padding:10px 14px 18px;
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .toast{
+      position:fixed;
+      right:14px;
+      bottom:14px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+      color:var(--text);
+      box-shadow:var(--shadow);
+      transform: translateY(10px);
+      opacity:0;
+      pointer-events:none;
+      transition: all .2s ease;
+      max-width: min(520px, calc(100vw - 28px));
+      font-size:12px;
+    }
+    .toast.show{opacity:1; transform: translateY(0)}
+
+    body.display-only input,
+    body.display-only button,
+    body.display-only .possession{
+      pointer-events:none;
+    }
+    body.display-only input{
+      opacity:.75;
+    }
+
+    
+    /* โหมดทีวี: ซ่อนแถบบันทึกเหตุการณ์เพื่อให้สกอร์บอร์ดใหญ่ขึ้น */
+    body.tv-mode .controls{display:none;}
+    body.tv-mode .wrap{grid-template-columns: 1fr;}
+    body.tv-mode .grid{grid-template-columns: 1fr 0.95fr 1fr;}
+    @media (max-width: 980px){
+      body.tv-mode .grid{grid-template-columns: 1fr;}
+    }
+
+    @media (max-width: 980px){
+      .wrap{grid-template-columns: 1fr}
+      .controls{min-width:0}
+      .grid{grid-template-columns: 1fr}
+      .center{padding:0}
+      .team,.clockCard{min-height:0}
+    }
+  
+    /* ฟาวล์ทีมครบ 5 (FIBA Bonus) */
+    .foul-danger{
+      color: var(--danger) !important;
+      text-shadow: 0 0 8px rgba(255,77,109,.45);
+    }
+
+  
+    /* ====== BONUS / TEAM FOULS UI ====== */
+    .bonusBadge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      color: var(--muted);
+      font-weight:900;
+      letter-spacing:.3px;
+      user-select:none;
+      min-width: 88px;
+    }
+    .bonusBadge.on{
+      color: var(--text);
+      border-color: rgba(255,77,109,.55);
+      box-shadow: 0 0 0 4px rgba(255,77,109,.12);
+    }
+    .bonusBadge.on.blinkFast{
+      animation: blinkFast .8s steps(2,end) infinite;
+    }
+    @keyframes blinkFast{50%{opacity:.35}}
+
+    /* ฟาวล์ทีมครบ 5: แยกโทนสีเหย้า/เยือน (ยังเด่นบนทีวี) */
+    .foul-danger-home{
+      color: var(--danger) !important;
+      text-shadow: 0 0 10px rgba(255,77,109,.55);
+    }
+    .foul-danger-away{
+      color: var(--warn) !important;
+      text-shadow: 0 0 10px rgba(255,209,102,.55);
+    }
+
+    /* ====== โหมดกรรมการโต๊ะ: ปุ่ม/ข้อความใหญ่ขึ้น ====== */
+    body.desk-mode .wrap{grid-template-columns: 1fr;}
+    body.desk-mode .controls{display:none;}
+    body.desk-mode .team input{font-size:18px; padding:12px}
+    body.desk-mode .score{font-size:92px; padding:14px 0}
+    body.desk-mode .bigClock{font-size:78px}
+    body.desk-mode .shotClock{font-size:60px}
+    body.desk-mode button{padding:14px 14px; border-radius:16px; font-size:16px}
+    body.desk-mode button.small{padding:10px 12px; font-size:14px}
+    body.desk-mode .pill{padding:8px 12px; font-size:13px}
+    body.desk-mode .stat .val{font-size:34px}
+    body.desk-mode .centerBox .val{font-size:26px}
+    body.desk-mode .possession{padding:10px 12px}
+
+  
+    /* ====== ขยายฟอนต์ เวลา + คะแนน (x2 สำหรับจอทีวี) ====== */
+    .score{
+      font-size: 140px !important;
+      padding: 18px 0 !important;
+    }
+    .bigClock{
+      font-size: 120px !important;
+      padding: 16px 0 !important;
+    }
+    .shotClock{
+      font-size: 88px !important;
+      padding: 14px 0 !important;
+    }
+
+    /* เมื่อใช้โหมดกรรมการโต๊ะ ให้ใหญ่ขึ้นไปอีกเล็กน้อย */
+    body.desk-mode .score{ font-size: 160px !important; }
+    body.desk-mode .bigClock{ font-size: 140px !important; }
+    body.desk-mode .shotClock{ font-size: 100px !important; }
+
+  
+    /* ====== ชื่อทีม: ใหญ่ขึ้น + สีเด่น (สำหรับจอทีวี) ====== */
+    .team input{
+      font-size: 34px !important;
+      font-weight: 1000 !important;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .team.home input{
+      color: #6ee7ff !important; /* ฟ้านีออน */
+      text-shadow: 0 0 10px rgba(110,231,255,.55);
+      border-color: rgba(110,231,255,.55);
+    }
+    .team.away input{
+      color: #ffd166 !important; /* เหลืองทอง */
+      text-shadow: 0 0 10px rgba(255,209,102,.55);
+      border-color: rgba(255,209,102,.55);
+    }
+
+    /* โหมดกรรมการโต๊ะ: ใหญ่ขึ้นอีก */
+    body.desk-mode .team input{
+      font-size: 40px !important;
+    }
+
+  
+    /* ====== ปิดการแสดงผลช็อตคล็อก ====== */
+    .shotClock,
+    #shotClockBox,
+    #shotClockVal,
+    #shotMode,
+    #shot24Btn,
+    #shot14Btn,
+    #shotResetBtn,
+    #shotMinusBtn,
+    #shotPlusBtn{
+      display:none !important;
+    }
+
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="dot"></div>
+    <div>
+      <h1>สกอร์บอร์ดบาสเกตบอล (FIBA) แบบมือโปร</h1>
+      <p>ควอเตอร์ 10:00 • ต่อเวลา 5:00 • ฟาวล์ทีมรีเซ็ตทุกช่วง • ไทม์เอาต์ 2/3/1 ต่อ OT</p>
+    </div>
+  </div>
+  <div class="meta">
+    <div class="pill"><span class="statusDot paused" id="runDot"></span><strong id="runText">หยุด</strong></div>
+    <div class="pill"><span class="statusDot paused" id="syncDot"></span><strong id="syncText">LOCAL</strong></div>
+    <div class="pill">กติกา: <strong>FIBA</strong></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="board" aria-label="สกอร์บอร์ด">
+    <div class="topbar">
+      <div class="meta">
+        <div class="pill">เกม: <strong id="gameId">#001</strong></div>
+        <div class="pill">ช่วง: <strong id="periodLabel">Q1</strong></div>
+        <div class="pill">รีเซ็ตฟาวล์ทีม: <strong id="foulReset">เปิด</strong></div>
+        <div class="pill">
+          <div class="possession" id="posBtn" title="คลิกเพื่อสลับลูกศรครองบอล (กด P ก็ได้)">
+            <div class="arrow" id="posArrow"></div>
+            <span>ครองบอล:</span>
+            <strong id="posText">เหย้า</strong>
+          </div>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="pill">
+          คีย์ลัด:
+          <span class="kbd">Space</span> เริ่ม/หยุดเวลา •
+          <span class="kbd">H</span>/<span class="kbd">A</span> +1 •
+          <span class="kbd">Shift</span>+H/A +2 •
+          <span class="kbd">Ctrl</span>+H/A +3 •
+          <span class="kbd">U</span> ย้อนกลับ • <span class="kbd">D</span> โหมดโต๊ะ
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- HOME -->
+      <div class="team home">
+        <div class="teamHead">
+          <div class="nameWrap">
+            <div class="nameRow"><div class="badge"></div><div style="color:var(--muted);font-size:12px">ทีมเหย้า</div></div>
+            <div class="row" style="margin-top:6px">
+              <div class="bonusBadge" id="homeBonus">BONUS</div>
+            </div>
+            <input id="homeName" value="ทีมเหย้า" />
+          </div>
+          <button class="small" id="swapBtn" title="สลับทีม เหย้า/เยือน">⇄ สลับ</button>
+        </div>
+
+        <div class="score" id="homeScore">0</div>
+
+        <div class="miniGrid">
+          <div class="stat">
+            <div class="label">ฟาวล์ทีม</div>
+            <div class="val" id="homeFouls">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">ไทม์เอาต์ (คงเหลือ)</div>
+            <div class="val" id="homeTO">2</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="good wide" data-act="score" data-team="home" data-val="1">+1</button>
+          <button class="good wide" data-act="score" data-team="home" data-val="2">+2</button>
+          <button class="good wide" data-act="score" data-team="home" data-val="3">+3</button>
+          <button class="danger wide" data-act="score" data-team="home" data-val="-1">-1</button>
+        </div>
+        <div class="row">
+          <button class="wide" data-act="foul" data-team="home" data-val="1">ฟาวล์ +</button>
+          <button class="wide" data-act="foul" data-team="home" data-val="-1">ฟาวล์ -</button>
+          <button class="wide" data-act="to" data-team="home" data-val="-1">ใช้ TO 1</button>
+          <button class="wide" data-act="to" data-team="home" data-val="1">TO +1</button>
+        </div>
+      </div>
+
+      <!-- CENTER -->
+      <div class="center">
+        <div class="clockCard">
+          <div class="row" style="justify-content:space-between;align-items:center">
+            <div class="pill">เวลาการแข่งขัน</div>
+            <div class="pill">พรีเซ็ต: <strong id="presetLabel">10:00</strong></div>
+          </div>
+
+          <div class="bigClock" id="gameClock">10:00.0</div>
+
+          <div class="centerMini">
+            <div class="centerBox">
+              <div class="label">ช็อตคล็อก</div>
+              <div class="val">
+                <span id="shotClockVal">24.0</span>
+                <span class="hint" id="shotMode">24</span>
+              </div>
+            </div>
+            <div class="centerBox">
+              <div class="label">เสียงนกหวีด/ฮอร์น</div>
+              <div class="val">
+                <button class="small danger" id="hornBtn" title="ฮอร์น (กด B)">🔊</button>
+                <button class="small" id="muteBtn" title="ปิด/เปิดเสียง">ปิดเสียง</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="shotClock" id="shotClockBox">24.0</div>
+
+          <div class="row">
+            <button class="primary wide" id="startPauseBtn">เริ่ม / หยุด</button>
+            <button class="wide" id="resetBtn">รีเซ็ตช่วง</button>
+            <button class="wide" id="nextPeriodBtn">ช่วงถัดไป</button>
+          </div>
+
+          <div class="row">
+            <button class="wide" id="setQBtn">ตั้ง Q 10:00</button>
+            <button class="wide" id="setOTBtn">ตั้ง OT 5:00</button>
+            <button class="danger wide" id="resetAllBtn">เริ่มเกมใหม่</button>
+          </div>
+
+          <div class="row">
+            <button class="wide" id="timeMinusBtn">-1 วินาที</button>
+            <button class="wide" id="timePlusBtn">+1 วินาที</button>
+          </div>
+
+          <div class="row">
+            <button class="good wide" id="shot24Btn">ช็อต 24</button>
+            <button class="good wide" id="shot14Btn">ช็อต 14</button>
+            <button class="danger wide" id="shotResetBtn">รีเซ็ตช็อต</button>
+          </div>
+
+          <div class="row">
+            <button class="wide" id="shotMinusBtn">-1 วินาที</button>
+            <button class="wide" id="shotPlusBtn">+1 วินาที</button>
+          </div>
+
+          <div class="row">
+            <button class="wide" id="toggleLogBtn">ซ่อนบันทึก</button>
+            <button class="wide" id="deskModeBtn">โหมดกรรมการโต๊ะ</button>
+            <button class="wide" id="fullBtn">เต็มจอ</button>
+            <button class="wide" id="exportBtn">ส่งออก JSON</button>
+            <button class="danger wide" id="undoBtn">ย้อนกลับ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AWAY -->
+      <div class="team away">
+        <div class="teamHead">
+          <div class="nameWrap">
+            <div class="nameRow"><div class="badge"></div><div style="color:var(--muted);font-size:12px">ทีมเยือน</div></div>
+            <div class="row" style="margin-top:6px">
+              <div class="bonusBadge" id="awayBonus">BONUS</div>
+            </div>
+            <input id="awayName" value="ทีมเยือน" />
+          </div>
+        </div>
+
+        <div class="score" id="awayScore">0</div>
+
+        <div class="miniGrid">
+          <div class="stat">
+            <div class="label">ฟาวล์ทีม</div>
+            <div class="val" id="awayFouls">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">ไทม์เอาต์ (คงเหลือ)</div>
+            <div class="val" id="awayTO">2</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="good wide" data-act="score" data-team="away" data-val="1">+1</button>
+          <button class="good wide" data-act="score" data-team="away" data-val="2">+2</button>
+          <button class="good wide" data-act="score" data-team="away" data-val="3">+3</button>
+          <button class="danger wide" data-act="score" data-team="away" data-val="-1">-1</button>
+        </div>
+        <div class="row">
+          <button class="wide" data-act="foul" data-team="away" data-val="1">ฟาวล์ +</button>
+          <button class="wide" data-act="foul" data-team="away" data-val="-1">ฟาวล์ -</button>
+          <button class="wide" data-act="to" data-team="away" data-val="-1">ใช้ TO 1</button>
+          <button class="wide" data-act="to" data-team="away" data-val="1">TO +1</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="controls" aria-label="บันทึกเหตุการณ์">
+    <div class="sectionTitle">
+      <h3>บันทึกเหตุการณ์</h3>
+      <div class="hint">
+        เพิ่มเติม: <span class="kbd">L</span> ซ่อน/แสดงบันทึก • <span class="kbd">P</span> ลูกศรครองบอล •
+        <span class="kbd">B</span> ฮอร์น •
+        <span class="kbd">S</span> รีเซ็ตช็อต
+      </div>
+    </div>
+    <div class="log" id="log"></div>
+  </aside>
+</main>
+
+<div class="footer">
+  <div>ทิป: ใช้ <b>เต็มจอ</b> แล้วซูมเบราว์เซอร์ 110–125% เพื่อให้ตัวเลขใหญ่เหมือนสนามจริง</div>
+  <div>ทำงานแบบออฟไลน์ (เปิดไฟล์แล้วใช้ได้ทันที)</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // -----------------------------
+  // ค่ากติกา FIBA (พื้นฐาน)
+  // -----------------------------
+  const FIBA = {
+    Q_MINUTES: 10,
+    OT_MINUTES: 5,
+    TO_FIRST_HALF: 2,   // Q1–Q2 รวมกัน
+    TO_SECOND_HALF: 3,  // Q3–Q4 รวมกัน
+    TO_PER_OT: 1,       // ต่อ OT แต่ละครั้ง
+    FOUL_RESET_EACH_PERIOD: true
+  };
+
+  // -----------------------------
+  // State
+  // -----------------------------
+  const state = {
+    gameId: 1,
+
+    // 1..4 = Q1..Q4, 5=OT1, 6=OT2...
+    periodIndex: 1,
+
+    home: { name: "ทีมเหย้า", score: 0, fouls: 0, timeouts: 0 },
+    away: { name: "ทีมเยือน", score: 0, fouls: 0, timeouts: 0 },
+
+    possession: "home", // home|away
+
+    // clocks in tenths (0.1s)
+    gameClockT: FIBA.Q_MINUTES * 60 * 10,
+    shotPreset: 24,
+    shotClockT: 24 * 10,
+
+    running: false,
+    muted: false,
+    hornAt: 0,
+  };
+
+  const REMOTE = {
+    enabled: false,
+    disabledByQuery: new URLSearchParams(location.search).get("control") === "1",
+    pollMs: 500,
+    lastHornAt: 0
+  };
+
+  // ใช้สำหรับ undo
+  const history = [];
+  const MAX_HISTORY = 200;
+
+  // -----------------------------
+  // Helpers
+  // -----------------------------
+  const $ = (id) => document.getElementById(id);
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+  const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+
+  function guardControl(){
+    return REMOTE.enabled && !REMOTE.disabledByQuery;
+  }
+
+  function setSyncStatus(ok, label){
+    const dot = $("syncDot");
+    const text = $("syncText");
+    if(!dot || !text) return;
+    text.textContent = label || (ok ? "SYNC" : "OFFLINE");
+    dot.classList.remove("paused","stopped","blink");
+    if(ok) dot.classList.add("blink");
+    else dot.classList.add("paused");
+  }
+
+  function applyRemoteState(payload){
+    if(!payload || !payload.state) return;
+    const serverTime = payload.serverTime || payload.updatedAt || Date.now();
+    const next = deepClone(payload.state);
+    if(next.running){
+      const steps = Math.floor((Date.now() - serverTime) / 100);
+      if(steps > 0){
+        next.gameClockT = Math.max(0, next.gameClockT - steps);
+        next.shotClockT = Math.max(0, next.shotClockT - steps);
+      }
+    }
+    const prevHorn = REMOTE.lastHornAt || 0;
+    Object.keys(state).forEach(k => delete state[k]);
+    Object.assign(state, next);
+    if(state.hornAt && state.hornAt > prevHorn){
+      REMOTE.lastHornAt = state.hornAt;
+      horn();
+    }
+    render();
+  }
+
+  async function fetchRemoteState(){
+    const res = await fetch(`${location.origin}/api/state`, { cache: "no-store" });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    applyRemoteState(data);
+    REMOTE.enabled = true;
+    document.body.classList.add("display-only");
+    setSyncStatus(true, "SYNC");
+  }
+
+  async function initRemote(){
+    if(REMOTE.disabledByQuery){
+      setSyncStatus(false, "LOCAL");
+      return;
+    }
+    try{
+      await fetchRemoteState();
+    }catch(e){
+      setSyncStatus(false, "LOCAL");
+      return;
+    }
+    setInterval(async ()=>{
+      try{
+        await fetchRemoteState();
+      }catch(e){
+        setSyncStatus(false, "OFFLINE");
+      }
+    }, REMOTE.pollMs);
+  }
+
+  function isOT(){ return state.periodIndex >= 5; }
+  function otNumber(){ return Math.max(1, state.periodIndex - 4); }
+  function periodLabel(){
+    if(state.periodIndex <= 4) return `Q${state.periodIndex}`;
+    return `OT${otNumber()}`;
+  }
+  function periodClockDefaultTenths(){
+    return (isOT() ? FIBA.OT_MINUTES : FIBA.Q_MINUTES) * 60 * 10;
+  }
+
+  // FIBA: timeouts รีเซ็ตตอนเริ่มครึ่งหลัง (Q3) และทุก OT
+  function maybeResetTimeoutsOnPeriodChange(){
+    if(state.periodIndex === 1){
+      state.home.timeouts = FIBA.TO_FIRST_HALF;
+      state.away.timeouts = FIBA.TO_FIRST_HALF;
+      return;
+    }
+    if(state.periodIndex === 3){
+      state.home.timeouts = FIBA.TO_SECOND_HALF;
+      state.away.timeouts = FIBA.TO_SECOND_HALF;
+      return;
+    }
+    if(state.periodIndex >= 5){
+      state.home.timeouts = FIBA.TO_PER_OT;
+      state.away.timeouts = FIBA.TO_PER_OT;
+      return;
+    }
+    // Q2/Q4 ไม่รีเซ็ต
+  }
+
+  function fmtClockTenths(t){
+    t = Math.max(0, Math.floor(t));
+    const tenths = t % 10;
+    const totalSec = Math.floor(t / 10);
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}.${tenths}`;
+  }
+
+  function fmtShot(t){
+    t = Math.max(0, Math.floor(t));
+    const tenths = t % 10;
+    const sec = Math.floor(t / 10);
+    return `${sec}.${tenths}`;
+  }
+
+  function nowTime(){
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mm = String(d.getMinutes()).padStart(2,"0");
+    const ss = String(d.getSeconds()).padStart(2,"0");
+    return `${hh}:${mm}:${ss}`;
+  }
+
+  function pushHistory(reason){
+    history.push({ snap: deepClone(state), reason, ts: Date.now() });
+    if(history.length > MAX_HISTORY) history.shift();
+    $("undoBtn").disabled = history.length === 0;
+  }
+
+  function toast(msg){
+    const el = $("toast");
+    el.innerHTML = msg;
+    el.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=> el.classList.remove("show"), 1600);
+  }
+
+  function logEvent(text){
+    const el = $("log");
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `<span class="t">[${nowTime()}]</span> ${text}`;
+    el.prepend(div);
+  }
+
+  // -----------------------------
+  // Horn (WebAudio)
+  // -----------------------------
+  let audioCtx = null;
+  function horn(){
+    if(state.muted) return;
+    try{
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = audioCtx;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "sawtooth";
+      o.frequency.setValueAtTime(440, ctx.currentTime);
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.80);
+      o.connect(g); g.connect(ctx.destination);
+      o.start();
+      o.stop(ctx.currentTime + 0.85);
+    }catch(e){}
+  }
+
+  // -----------------------------
+  // Render
+  // -----------------------------
+  function render(){
+    $("gameId").textContent = `#${String(state.gameId).padStart(3,"0")}`;
+    $("periodLabel").textContent = periodLabel();
+    $("foulReset").textContent = FIBA.FOUL_RESET_EACH_PERIOD ? "เปิด" : "ปิด";
+
+    $("homeName").value = state.home.name;
+    $("awayName").value = state.away.name;
+
+    $("homeScore").textContent = state.home.score;
+    $("awayScore").textContent = state.away.score;
+
+    $("homeFouls").textContent = state.home.fouls;
+    $("homeFouls").classList.toggle("foul-danger-home", state.home.fouls >= 5);
+    $("homeFouls").classList.remove("foul-danger-away");
+    $("awayFouls").textContent = state.away.fouls;
+    $("awayFouls").classList.toggle("foul-danger-away", state.away.fouls >= 5);
+    $("awayFouls").classList.remove("foul-danger-home");
+    // BONUS (ฟาวล์ทีมครบ 5)
+    const hb = $("homeBonus");
+    const ab = $("awayBonus");
+    if(hb){
+      const on = state.home.fouls >= 5;
+      hb.classList.toggle("on", on);
+      hb.classList.toggle("blinkFast", on);
+      hb.textContent = on ? "BONUS" : "—";
+    }
+    if(ab){
+      const on = state.away.fouls >= 5;
+      ab.classList.toggle("on", on);
+      ab.classList.toggle("blinkFast", on);
+      ab.textContent = on ? "BONUS" : "—";
+    }
+
+
+    $("homeTO").textContent = state.home.timeouts;
+    $("awayTO").textContent = state.away.timeouts;
+
+    $("gameClock").textContent = fmtClockTenths(state.gameClockT);
+
+    const shotTxt = fmtShot(state.shotClockT);
+    $("shotClockVal").textContent = shotTxt;
+    $("shotClockBox").textContent = shotTxt;
+
+    // shot clock styling
+    const sc = state.shotClockT / 10;
+    const box = $("shotClockBox");
+    box.classList.remove("warn","danger");
+    if(sc <= 5) box.classList.add("danger");
+    else if(sc <= 8) box.classList.add("warn");
+
+    $("shotMode").textContent = String(state.shotPreset);
+
+    // preset label
+    $("presetLabel").textContent = isOT() ? "OT 5:00" : "Q 10:00";
+
+    // possession
+    $("posText").textContent = (state.possession === "home") ? "เหย้า" : "เยือน";
+    $("posArrow").className = "arrow " + (state.possession === "away" ? "away" : "");
+
+    // running badge
+    const dot = $("runDot");
+    if(state.running){
+      $("runText").textContent = "กำลังนับ";
+      dot.classList.remove("paused","stopped");
+      dot.classList.add("blink");
+    }else{
+      $("runText").textContent = "หยุด";
+      dot.classList.remove("blink","stopped");
+      dot.classList.add("paused");
+    }
+
+    $("muteBtn").textContent = state.muted ? "เปิดเสียง" : "ปิดเสียง";
+    $("undoBtn").disabled = history.length === 0;
+  }
+
+  // -----------------------------
+  // Actions
+  // -----------------------------
+  function setPossession(team){
+    if(guardControl()) return;
+    pushHistory("สลับครองบอล");
+    state.possession = team;
+    logEvent(`ครองบอล → <b>${team === "home" ? "เหย้า" : "เยือน"}</b>`);
+    render();
+  }
+
+  function addScore(team, delta){
+    if(guardControl()) return;
+    pushHistory(`คะแนน ${team} ${delta}`);
+    const tgt = state[team];
+    tgt.score = clamp(tgt.score + delta, 0, 999);
+    logEvent(`${team === "home" ? "เหย้า" : "เยือน"} คะแนน ${delta>0?"+":""}${delta} → <b>${tgt.score}</b>`);
+    render();
+  }
+
+  function addFoul(team, delta){
+    if(guardControl()) return;
+    pushHistory(`ฟาวล์ ${team} ${delta}`);
+    const tgt = state[team];
+    // FIBA: ฟาวล์ทีมแสดงสูงสุดที่ 5 (Bonus)
+    tgt.fouls = clamp(tgt.fouls + delta, 0, 5);
+    logEvent(`${team === "home" ? "เหย้า" : "เยือน"} ฟาวล์ ${delta>0?"+":""}${delta} → <b>${tgt.fouls}</b>`);
+    render();
+  }
+
+  function addTimeout(team, delta){
+    if(guardControl()) return;
+    pushHistory(`ไทม์เอาต์ ${team} ${delta}`);
+    const tgt = state[team];
+    tgt.timeouts = clamp(tgt.timeouts + delta, 0, 9);
+    logEvent(`${team === "home" ? "เหย้า" : "เยือน"} ไทม์เอาต์ ${delta>0?"+":""}${delta} → <b>${tgt.timeouts}</b>`);
+    render();
+  }
+
+  function setPeriodClockToDefault(){
+    if(guardControl()) return;
+    pushHistory("ตั้งเวลาเริ่มช่วง");
+    state.gameClockT = periodClockDefaultTenths();
+    logEvent(`ตั้งเวลา → <b>${isOT() ? "OT 05:00" : "Q 10:00"}</b>`);
+    render();
+  }
+
+  function setShotPreset(preset){
+    if(guardControl()) return;
+    pushHistory("ตั้งช็อตคล็อก");
+    state.shotPreset = preset;
+    state.shotClockT = preset * 10;
+    logEvent(`ช็อตคล็อก → <b>${preset}</b>`);
+    render();
+  }
+
+  
+  function adjustShot(delta){
+    if(guardControl()) return;
+    pushHistory("ปรับช็อตคล็อก");
+    state.shotClockT = Math.max(0, Math.min(99*10, state.shotClockT + delta*10));
+    logEvent(`ปรับช็อตคล็อก ${delta>0?"+":""}${delta} วินาที → <b>${state.shotClockT/10}</b>`);
+    render();
+  }
+
+  function resetShot(){
+    if(guardControl()) return;
+    pushHistory("รีเซ็ตช็อตคล็อก");
+    state.shotClockT = state.shotPreset * 10;
+    logEvent(`รีเซ็ตช็อตคล็อก → <b>${state.shotPreset}</b>`);
+    render();
+  }
+
+  
+  function adjustGameTime(delta){
+    if(guardControl()) return;
+    pushHistory("ปรับเวลาแข่งขัน");
+    state.gameClockT = Math.max(0, Math.min(99*60*10, state.gameClockT + delta*10));
+    logEvent(`ปรับเวลาแข่งขัน ${delta>0?"+":""}${delta} วินาที → <b>${fmtClockTenths(state.gameClockT)}</b>`);
+    render();
+  }
+
+  function toggleRun(){
+    if(guardControl()) return;
+    pushHistory("เริ่ม/หยุดเวลา");
+    state.running = !state.running;
+    logEvent(state.running ? "▶ เริ่มนับเวลา" : "⏸ หยุดเวลา");
+    toast(state.running ? "<b>เริ่มนับเวลา</b>" : "<b>หยุดเวลา</b>");
+    render();
+  }
+
+  function resetPeriod(){
+    if(guardControl()) return;
+    pushHistory("รีเซ็ตช่วง");
+    state.running = false;
+    // ไม่บังคับรีเซ็ตคะแนน แต่รีเซ็ตเวลาตามช่วง + รีเซ็ตช็อต
+    state.gameClockT = periodClockDefaultTenths();
+    resetShot(); // จะ pushHistory อีกครั้ง—ไม่อยากซ้อน จึงแก้ด้วยการทำแบบเงียบ
+  }
+
+  function resetPeriodSilent(){
+    if(guardControl()) return;
+    // ใช้แทน resetPeriod() เพื่อไม่ซ้อน history
+    state.running = false;
+    state.gameClockT = periodClockDefaultTenths();
+    state.shotClockT = state.shotPreset * 10;
+    logEvent("รีเซ็ตช่วง (เวลา + ช็อต) และหยุดเวลา");
+    toast("รีเซ็ตช่วง");
+    render();
+  }
+
+  function nextPeriod(){
+    if(guardControl()) return;
+    pushHistory("ช่วงถัดไป");
+    state.running = false;
+    state.periodIndex = clamp(state.periodIndex + 1, 1, 99);
+
+    // ตั้งเวลาเริ่มต้นช่วงใหม่
+    state.gameClockT = periodClockDefaultTenths();
+    // ช็อตกลับไป 24 เป็นค่าเริ่มต้นที่พบบ่อยในการเริ่มช่วง
+    state.shotPreset = 24;
+    state.shotClockT = 24 * 10;
+
+    // รีเซ็ตฟาวล์ทีมทุกช่วง (ตามที่ตั้งไว้)
+    if(FIBA.FOUL_RESET_EACH_PERIOD){
+      state.home.fouls = 0;
+      state.away.fouls = 0;
+    }
+
+    // รีเซ็ต timeouts ตาม FIBA: Q1 ให้ 2, Q3 ให้ 3, OT ให้ 1
+    maybeResetTimeoutsOnPeriodChange();
+
+    logEvent(`ไปยังช่วง <b>${periodLabel()}</b>` + (FIBA.FOUL_RESET_EACH_PERIOD ? " (รีเซ็ตฟาวล์ทีม)" : ""));
+    toast(`ช่วง ${periodLabel()}`);
+    render();
+  }
+
+  function resetAll(){
+    if(guardControl()) return;
+    pushHistory("เริ่มเกมใหม่");
+    state.gameId += 1;
+    state.periodIndex = 1;
+
+    state.home.score = 0; state.away.score = 0;
+    state.home.fouls = 0; state.away.fouls = 0;
+
+    state.running = false;
+    state.possession = "home";
+
+    state.gameClockT = FIBA.Q_MINUTES * 60 * 10;
+    state.shotPreset = 24;
+    state.shotClockT = 24 * 10;
+
+    // timeouts เริ่มเกม = 2 (ครึ่งแรก)
+    state.home.timeouts = FIBA.TO_FIRST_HALF;
+    state.away.timeouts = FIBA.TO_FIRST_HALF;
+
+    logEvent(`เริ่มเกมใหม่ → <b>#${String(state.gameId).padStart(3,"0")}</b>`);
+    toast("เริ่มเกมใหม่");
+    render();
+  }
+
+  function swapTeams(){
+    if(guardControl()) return;
+    pushHistory("สลับทีม");
+    const tmp = deepClone(state.home);
+    state.home = deepClone(state.away);
+    state.away = tmp;
+    state.possession = (state.possession === "home") ? "away" : "home";
+    logEvent("สลับทีม เหย้า ↔ เยือน");
+    render();
+  }
+
+  function undo(){
+    if(guardControl()) return;
+    const last = history.pop();
+    if(!last) return;
+    const snap = last.snap;
+    Object.keys(state).forEach(k => delete state[k]);
+    Object.assign(state, snap);
+    logEvent(`↩ ย้อนกลับ: <span class="t">${last.reason}</span>`);
+    toast("ย้อนกลับ");
+    render();
+  }
+
+  function exportJSON(){
+    if(guardControl()) return;
+    const data = {
+      exportedAt: new Date().toISOString(),
+      rule: "FIBA",
+      state: deepClone(state),
+      historySize: history.length,
+    };
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `scoreboard_fiba_${String(state.gameId).padStart(3,"0")}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    logEvent("ส่งออกไฟล์ JSON");
+    toast("ส่งออก JSON แล้ว");
+  }
+
+  function toggleMute(){
+    if(guardControl()) return;
+    state.muted = !state.muted;
+    logEvent(state.muted ? "🔇 ปิดเสียง" : "🔊 เปิดเสียง");
+    toast(state.muted ? "ปิดเสียง" : "เปิดเสียง");
+    render();
+  }
+
+  // -----------------------------
+  // Timer loop (0.1s tick)
+  // -----------------------------
+  let audioPrimed = false;
+  let lastTick = performance.now();
+  function loop(ts){
+    const dt = ts - lastTick;
+    if(dt >= 100){
+      const steps = Math.floor(dt / 100); // 0.1s steps
+      lastTick += steps * 100;
+
+      if(state.running){
+        const beforeGC = state.gameClockT;
+        const beforeSC = state.shotClockT;
+
+        state.gameClockT = Math.max(0, state.gameClockT - steps);
+        state.shotClockT = Math.max(0, state.shotClockT - steps);
+
+        if(beforeGC > 0 && state.gameClockT === 0){
+          horn();
+          logEvent("⏱ หมดเวลาแข่งขัน (ฮอร์น)");
+          toast("หมดเวลา");
+          state.running = false;
+        }
+        if(beforeSC > 0 && state.shotClockT === 0){
+          horn();
+          logEvent("🎯 หมดช็อตคล็อก (ฮอร์น)");
+          toast("หมดช็อตคล็อก");
+          // ไม่หยุด game clock
+        }
+      }
+      render();
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // -----------------------------
+  // Wire UI
+  // -----------------------------
+  $("homeName").addEventListener("change", (e)=>{
+    if(guardControl()) return;
+    pushHistory("เปลี่ยนชื่อทีมเหย้า");
+    state.home.name = e.target.value.trim() || "ทีมเหย้า";
+    logEvent(`ชื่อทีมเหย้า → <b>${state.home.name}</b>`);
+    render();
+  });
+  $("awayName").addEventListener("change", (e)=>{
+    if(guardControl()) return;
+    pushHistory("เปลี่ยนชื่อทีมเยือน");
+    state.away.name = e.target.value.trim() || "ทีมเยือน";
+    logEvent(`ชื่อทีมเยือน → <b>${state.away.name}</b>`);
+    render();
+  });
+
+  document.querySelectorAll("button[data-act]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const act = btn.dataset.act;
+      const team = btn.dataset.team;
+      const val = parseInt(btn.dataset.val,10);
+      if(act==="score") addScore(team, val);
+      if(act==="foul") addFoul(team, val);
+      if(act==="to") addTimeout(team, val);
+    });
+  });
+
+  $("posBtn").addEventListener("click", ()=> setPossession(state.possession==="home"?"away":"home"));
+
+  $("startPauseBtn").addEventListener("click", ()=>{
+    // prime audio on first user gesture if needed
+    if(!audioPrimed){
+      try{
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        audioCtx.resume && audioCtx.resume();
+      }catch(e){}
+      audioPrimed = true;
+    }
+    toggleRun();
+  });
+
+  $("resetBtn").addEventListener("click", ()=>{
+    pushHistory("รีเซ็ตช่วง");
+    resetPeriodSilent();
+  });
+
+  $("nextPeriodBtn").addEventListener("click", nextPeriod);
+
+  $("setQBtn").addEventListener("click", ()=>{
+    pushHistory("ตั้งเวลา Q 10:00");
+    state.running = false;
+    state.periodIndex = Math.min(state.periodIndex, 4); // ถ้าอยู่ OT แล้วกดปุ่มนี้ จะกลับมาใช้ Q แต่คง period เดิมไว้เป็น Q4
+    state.gameClockT = FIBA.Q_MINUTES * 60 * 10;
+    logEvent("ตั้งเวลาเป็น Q 10:00");
+    toast("ตั้ง Q 10:00");
+    render();
+  });
+
+  $("setOTBtn").addEventListener("click", ()=>{
+    pushHistory("ตั้งเวลา OT 5:00");
+    state.running = false;
+    if(state.periodIndex <= 4) state.periodIndex = 5; // OT1
+    state.gameClockT = FIBA.OT_MINUTES * 60 * 10;
+    // OT ได้ timeouts ใหม่ 1
+    state.home.timeouts = FIBA.TO_PER_OT;
+    state.away.timeouts = FIBA.TO_PER_OT;
+    if(FIBA.FOUL_RESET_EACH_PERIOD){
+      state.home.fouls = 0; state.away.fouls = 0;
+    }
+    logEvent("ตั้งเวลาเป็น OT 5:00 (OT1)");
+    toast("ตั้ง OT 5:00");
+    render();
+  });
+
+  $("shot24Btn").addEventListener("click", ()=> setShotPreset(24));
+  $("shot14Btn").addEventListener("click", ()=> setShotPreset(14));
+  $("shotResetBtn").addEventListener("click", resetShot);
+
+  $("shotMinusBtn").addEventListener("click", ()=> adjustShot(-1));
+  $("shotPlusBtn").addEventListener("click", ()=> adjustShot(1));
+
+
+  $("hornBtn").addEventListener("click", ()=> { horn(); logEvent("🔊 กดฮอร์น"); });
+  $("muteBtn").addEventListener("click", toggleMute);
+
+  $("swapBtn").addEventListener("click", swapTeams);
+  $("undoBtn").addEventListener("click", undo);
+  $("exportBtn").addEventListener("click", exportJSON);
+  $("resetAllBtn").addEventListener("click", resetAll);
+
+  $("timeMinusBtn").addEventListener("click", ()=> adjustGameTime(-1));
+  $("timePlusBtn").addEventListener("click", ()=> adjustGameTime(1));
+
+
+  $("toggleLogBtn").addEventListener("click", toggleTvMode);
+  $("deskModeBtn").addEventListener("click", toggleDeskMode);
+
+
+
+  
+  // -----------------------------
+  // โหมดทีวี: ซ่อน/แสดงบันทึกเหตุการณ์
+  // -----------------------------
+  function setTvMode(on){
+    document.body.classList.toggle("tv-mode", !!on);
+    const isOn = document.body.classList.contains("tv-mode");
+    const btn = $("toggleLogBtn");
+    if(btn) btn.textContent = isOn ? "แสดงบันทึก" : "ซ่อนบันทึก";
+    // แจ้งเตือนสั้นๆ
+    toast(isOn ? "ซ่อนบันทึกแล้ว (โหมดทีวี)" : "แสดงบันทึกแล้ว");
+  }
+
+  function toggleTvMode(){
+    setTvMode(!document.body.classList.contains("tv-mode"));
+  }
+
+  // -----------------------------
+  // โหมดกรรมการโต๊ะ: ตัวเลข/ปุ่มใหญ่ขึ้น (เหมาะกับควบคุมใกล้ๆ)
+  // -----------------------------
+  function setDeskMode(on){
+    document.body.classList.toggle("desk-mode", !!on);
+    const isOn = document.body.classList.contains("desk-mode");
+    const btn = $("deskModeBtn");
+    if(btn) btn.textContent = isOn ? "ปิดโหมดกรรมการโต๊ะ" : "โหมดกรรมการโต๊ะ";
+    // ในโหมดโต๊ะให้ซ่อนบันทึกไว้เสมอ (จอใหญ่ + โฟกัสตัวเลข)
+    document.body.classList.add("tv-mode");
+    const tbtn = $("toggleLogBtn");
+    if(tbtn) tbtn.textContent = "แสดงบันทึก";
+    toast(isOn ? "เปิดโหมดกรรมการโต๊ะ" : "ปิดโหมดกรรมการโต๊ะ");
+  }
+  function toggleDeskMode(){
+    setDeskMode(!document.body.classList.contains("desk-mode"));
+  }
+
+  $("fullBtn").addEventListener("click", async ()=>{
+    try{
+      if(!document.fullscreenElement){
+        await document.documentElement.requestFullscreen();
+        toast("โหมดเต็มจอ: เปิด");
+      }else{
+        await document.exitFullscreen();
+        toast("โหมดเต็มจอ: ปิด");
+      }
+    }catch(e){
+      toast("อุปกรณ์นี้ไม่รองรับเต็มจอ");
+    }
+  });
+
+
+  // เมื่อเข้าเต็มจอ: เปิดโหมดกรรมการโต๊ะอัตโนมัติ (ปิดได้ด้วยปุ่ม/กด D)
+  document.addEventListener("fullscreenchange", ()=>{
+    if(document.fullscreenElement){
+      // เปิดอัตโนมัติครั้งแรก
+      if(!document.body.classList.contains("desk-mode")) setDeskMode(true);
+    }else{
+      // ออกจากเต็มจอ: ปิดโหมดโต๊ะ แต่ยังซ่อนบันทึกไว้ (tv-mode)
+      if(document.body.classList.contains("desk-mode")) setDeskMode(false);
+      document.body.classList.add("tv-mode");
+      const tbtn = $("toggleLogBtn");
+      if(tbtn) tbtn.textContent = "แสดงบันทึก";
+    }
+  });
+
+
+  // -----------------------------
+  // Keyboard shortcuts
+  // -----------------------------
+  window.addEventListener("keydown", (e)=>{
+    const tag = (document.activeElement && document.activeElement.tagName) || "";
+    if(tag === "INPUT" || tag === "TEXTAREA") return;
+    if(guardControl()) return;
+
+    const key = e.key.toLowerCase();
+    const ctrl = e.ctrlKey || e.metaKey;
+    const shift = e.shiftKey;
+
+    if(key === " "){
+      e.preventDefault();
+      toggleRun();
+      return;
+    }
+    if(key === "u"){ undo(); return; }
+    if(key === "l"){ toggleTvMode(); return; }
+    if(key === "d"){ toggleDeskMode(); return; }
+    if(key === "p"){ setPossession(state.possession==="home"?"away":"home"); return; }
+    if(key === "b"){ horn(); logEvent("🔊 กดฮอร์น"); return; }
+    if(key === "s"){ resetShot(); return; }
+    if(key === "["){ adjustShot(-1); return; }
+    if(key === "]"){ adjustShot(1); return; }
+    if(key === ","){ adjustGameTime(-1); return; }
+    if(key === "."){ adjustGameTime(1); return; }
+
+    if(key === "h"){
+      if(ctrl) addScore("home", 3);
+      else if(shift) addScore("home", 2);
+      else addScore("home", 1);
+      return;
+    }
+    if(key === "a"){
+      if(ctrl) addScore("away", 3);
+      else if(shift) addScore("away", 2);
+      else addScore("away", 1);
+      return;
+    }
+  });
+
+  // init
+  maybeResetTimeoutsOnPeriodChange();
+  // เริ่มต้นในโหมดทีวี (ซ่อนบันทึก) สามารถกดปุ่ม 'แสดงบันทึก' หรือกด L เพื่อเปิดได้
+  document.body.classList.add('tv-mode');
+  // ปรับข้อความปุ่มให้ตรงกับสถานะเริ่มต้น
+  const tbtn = $("toggleLogBtn");
+  if(tbtn) tbtn.textContent = "แสดงบันทึก";
+  const dbtn = $("deskModeBtn");
+  if(dbtn) dbtn.textContent = "โหมดกรรมการโต๊ะ";
+
+
+  logEvent("พร้อมใช้งาน: กด <b>Space</b> เพื่อเริ่ม/หยุดเวลา");
+  render();
+  initRemote();
+</script>
+</body>
+</html>
